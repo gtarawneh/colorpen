@@ -17,11 +17,9 @@ Options:
 
 """
 
-def_styles = {
-	"hello": "red",
-};
-
-attrWords = ["bold"]
+attrWords = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
+"reset", "res_bold", "res_dim", "res_underlined", "res_blink", "res_reverse",
+"res_hidden"]
 
 def main():
 	args = docopt(usage, version="Colorpen 0.1")
