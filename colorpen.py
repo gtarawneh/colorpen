@@ -40,7 +40,10 @@ def main():
 				for word in p.findall(line):
 					styledWord = colored(word, color, attrs=attrs)
 					line = line.replace(word, styledWord)
-			sys.stdout.write(line)
+			try:
+				sys.stdout.write(line)
+			except IOError:
+				pass
 		else:
 			break
 
@@ -51,5 +54,11 @@ def loadJSON(file):
 	except ValueError as e:
 		print(e)
 		raise Exception('Error encountered while parsing %s' % file)
+	except IOError:
+		print "Style file \"%s\" does not exist" % file
+		sys.exit(1)
 
-main()
+try:
+	main()
+except KeyboardInterrupt:
+	pass
