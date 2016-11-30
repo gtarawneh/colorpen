@@ -26,11 +26,14 @@ attrWords = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
 
 def main():
 	args = docopt(usage, version="Colorpen 0.1")
-	styleFile = args["--style"]
-	if (not styleFile) and os.path.isfile(defStyleFile):
-		styleFile = defStyleFile
-	styles = loadJSON(styleFile) if styleFile else {"hello": "red"}
-	patterns = {re.compile(x):st for x, st in styles.iteritems()}
+	if sys.stdout.isatty():
+		styleFile = args["--style"]
+		if (not styleFile) and os.path.isfile(defStyleFile):
+			styleFile = defStyleFile
+		styles = loadJSON(styleFile) if styleFile else {"hello": "red"}
+		patterns = {re.compile(x):st for x, st in styles.iteritems()}
+	else:
+		patterns = {}
 	while True:
 		line = sys.stdin.readline()
 		if line:
