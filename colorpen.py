@@ -3,6 +3,7 @@
 import sys
 import re
 import json
+import os.path
 from termcolor import colored
 from docopt import docopt
 
@@ -13,9 +14,11 @@ Usage:
   colorpen [--style=<json>]
 
 Options:
-  --style=<json>    Load color style from json file
+  --style=<json>  Color style file [default=colorpen.json]
 
 """
+
+defStyleFile = "colorpen.json"
 
 attrWords = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
 "reset", "res_bold", "res_dim", "res_underlined", "res_blink", "res_reverse",
@@ -24,6 +27,8 @@ attrWords = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
 def main():
 	args = docopt(usage, version="Colorpen 0.1")
 	styleFile = args["--style"]
+	if (not styleFile) and os.path.isfile(defStyleFile):
+		styleFile = defStyleFile
 	styles = loadJSON(styleFile) if styleFile else {"hello": "red"}
 	patterns = {re.compile(x):st for x, st in styles.iteritems()}
 	while True:
@@ -52,8 +57,8 @@ def loadJSON(file):
 		with open(file) as f:
 			return json.load(f)
 	except ValueError as e:
-		print(e)
-		raise Exception('Error encountered while parsing %s' % file)
+		print "Invalid JSON file \"%s\"" % file
+		sys.exit(1)
 	except IOError:
 		print "Style file \"%s\" does not exist" % file
 		sys.exit(1)
