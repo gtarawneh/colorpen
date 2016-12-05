@@ -47,6 +47,7 @@ def main():
 					line = line.replace(word, styledWord)
 			try:
 				sys.stdout.write(line)
+				sys.stdout.flush()
 			except IOError:
 				pass
 		else:
