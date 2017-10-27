@@ -1,11 +1,12 @@
 #!/bin/python
 
-import sys
 import re
+import os
+import sys
 import json
-import os.path
-from termcolor import colored
 from docopt import docopt
+from termcolor import colored
+
 
 usage = """Colorpen
 
@@ -18,45 +19,65 @@ Options:
 
 """
 
+
 defStyleFile = "colorpen.json"
 
-attrWords = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
+
+test_style = {"hello": "red"}
+
+
+valid_attrs = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
 "reset", "res_bold", "res_dim", "res_underlined", "res_blink", "res_reverse",
 "res_hidden"]
 
+
+valid_colors = ["grey", "red", "green", "yellow", "blue", "magenta", "cyan",
+"white"]
+
+
+def in_list(list):
+	"""Return a function that checks whether an item is in list"""
+	return lambda item: item in list
+
+
 def main():
+
 	args = docopt(usage, version="Colorpen 0.1")
-	styleFile = args["--style"]
-	if (not styleFile) and os.path.isfile(defStyleFile):
-		styleFile = defStyleFile
-	styles = loadJSON(styleFile) if styleFile else {"hello": "red"}
-	patterns = {re.compile(x):st for x, st in styles.iteritems()}
+	styleFile = args.get("--style") or defStyleFile
+
+	styles = loadJSON(styleFile) if os.path.isfile(styleFile) else test_style
+	patterns = {re.compile(expr): style for expr, style in styles.iteritems()}
+
 	while True:
+
 		line = sys.stdin.readline()
-		if line:
-			for p, style in patterns.iteritems():
-				color = None
-				attrs = []
-				for word in style.split("+"):
-					if word in attrWords:
-						attrs.append(word)
-					else:
-						color = word
-				for word in p.findall(line):
-					styledWord = colored(word, color, attrs=attrs)
-					line = line.replace(word, styledWord)
-			try:
-				sys.stdout.write(line)
-				sys.stdout.flush()
-			except IOError:
-				pass
-		else:
+
+		if not line:
 			break
+
+		for pat, style in patterns.iteritems():
+
+			words = style.split()
+			attrs = filter(in_list(valid_attrs), words)
+			colors = filter(in_list(valid_colors), words)
+			color = colors[0] if colors else None
+
+			for match in pat.findall(line):
+				styled_match = colored(match, color, attrs=attrs)
+				line = line.replace(match, styled_match)
+
+		try:
+			sys.stdout.write(line)
+			sys.stdout.flush()
+
+		except IOError:
+			pass
+
 
 def loadJSON(file):
 	try:
-		with open(file) as f:
-			return json.load(f)
+		with open(file) as fid:
+			return json.load(fid)
 	except ValueError as e:
 		print "Invalid JSON file \"%s\"" % file
 		sys.exit(1)
@@ -64,7 +85,9 @@ def loadJSON(file):
 		print "Style file \"%s\" does not exist" % file
 		sys.exit(1)
 
-try:
-	main()
-except KeyboardInterrupt:
-	pass
+
+if __name__ == '__main__':
+	try:
+		main()
+	except KeyboardInterrupt:
+		pass
