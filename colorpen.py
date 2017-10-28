@@ -1,10 +1,10 @@
 #!/bin/python
 
 import re
-import os
 import sys
 import json
 from docopt import docopt
+from os.path import isfile
 from termcolor import colored
 
 
@@ -15,7 +15,7 @@ Usage:
   colorpen [--style=<json>]
 
 Options:
-  --style=<json>  Color style file [default=colorpen.json]
+  --style=<json>  Use color style file [default=colorpen.json].
 
 """
 
@@ -40,13 +40,25 @@ def in_list(list):
 	return lambda item: item in list
 
 
+def get_style(style_str):
+	"""Parse a style string in the form 'color attr1 attr2...'"""
+	words = style_str.split()
+	attrs = filter(in_list(valid_attrs), words)
+	colors = filter(in_list(valid_colors), words)
+	color = colors[0] if colors else None
+	return (color, attrs)
+
+
 def main():
 
 	args = docopt(usage, version="Colorpen 0.1")
+
 	styleFile = args.get("--style") or defStyleFile
 
-	styles = loadJSON(styleFile) if os.path.isfile(styleFile) else test_style
-	patterns = {re.compile(expr): style for expr, style in styles.iteritems()}
+	styles = loadJSON(styleFile) if isfile(styleFile) else test_style
+
+	patterns = [ (re.compile(expr), get_style(style_str)) for
+		expr, style_str in styles.iteritems() ]
 
 	while True:
 
@@ -55,14 +67,10 @@ def main():
 		if not line:
 			break
 
-		for pat, style in patterns.iteritems():
-
-			words = style.split()
-			attrs = filter(in_list(valid_attrs), words)
-			colors = filter(in_list(valid_colors), words)
-			color = colors[0] if colors else None
+		for pat, (color, attrs) in patterns:
 
 			for match in pat.findall(line):
+
 				styled_match = colored(match, color, attrs=attrs)
 				line = line.replace(match, styled_match)
 
@@ -75,14 +83,17 @@ def main():
 
 
 def loadJSON(file):
+
+	if not isfile(file):
+		print "File \"%s\" does not exist" % file
+		sys.exit(1)
+
 	try:
 		with open(file) as fid:
 			return json.load(fid)
+
 	except ValueError as e:
 		print "Invalid JSON file \"%s\"" % file
-		sys.exit(1)
-	except IOError:
-		print "Style file \"%s\" does not exist" % file
 		sys.exit(1)
 
 
