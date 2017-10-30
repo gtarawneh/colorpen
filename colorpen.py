@@ -93,8 +93,8 @@ def loadJSON(file):
 			return json.load(fid)
 
 	except ValueError as e:
-		print "Invalid JSON file \"%s\"" % file
-		sys.exit(1)
+		print colored("Warning: invalid colorpen JSON file, ignored.", attrs=["bold"])
+		return {}
 
 
 if __name__ == '__main__':
