@@ -11,11 +11,11 @@ from termcolor import colored
 usage = """Colorpen
 
 Usage:
-  colorpen
-  colorpen [--style=<json>]
+  colorpen [--style=<json>] [--matches]
 
 Options:
   --style=<json>  Use color style file [default=colorpen.json].
+  -m, --matches   Print lines that match at least one pattern.
 
 """
 
@@ -34,6 +34,8 @@ valid_attrs = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
 valid_colors = ["grey", "red", "green", "yellow", "blue", "magenta", "cyan",
 "white"]
 
+valid_cmds = ["delete"]
+
 
 def in_list(list):
 	"""Return a function that checks whether an item is in list"""
@@ -46,7 +48,8 @@ def get_style(style_str):
 	attrs = filter(in_list(valid_attrs), words)
 	colors = filter(in_list(valid_colors), words)
 	color = colors[0] if colors else None
-	return (color, attrs)
+	cmds = filter(in_list(valid_cmds), words)
+	return (color, attrs, cmds)
 
 
 def main():
@@ -67,16 +70,24 @@ def main():
 		if not line:
 			break
 
-		for pat, (color, attrs) in patterns:
+		any_match = False
+
+		for pat, (color, attrs, cmds) in patterns:
 
 			for match in pat.findall(line):
 
-				styled_match = colored(match, color, attrs=attrs)
-				line = line.replace(match, styled_match)
+				any_match = True
+
+				if "delete" in cmds:
+					line = line.replace(match, "")
+				else:
+					styled_match = colored(match, color, attrs=attrs)
+					line = line.replace(match, styled_match)
 
 		try:
-			sys.stdout.write(line)
-			sys.stdout.flush()
+			if not args["--matches"] or any_match:
+				sys.stdout.write(line)
+				sys.stdout.flush()
 
 		except IOError:
 			pass
