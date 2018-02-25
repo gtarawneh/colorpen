@@ -79,7 +79,7 @@ def main():
 				any_match = True
 
 				if "delete" in cmds:
-					line = line.replace(match, "")
+					line = ""
 				else:
 					styled_match = colored(match, color, attrs=attrs)
 					line = line.replace(match, styled_match)
