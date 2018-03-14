@@ -38,78 +38,78 @@ valid_cmds = ["delete"]
 
 
 def in_list(list):
-	"""Return a function that checks whether an item is in list"""
-	return lambda item: item in list
+    """Return a function that checks whether an item is in list"""
+    return lambda item: item in list
 
 
 def get_style(style_str):
-	"""Parse a style string in the form 'color attr1 attr2...'"""
-	words = style_str.split()
-	attrs = filter(in_list(valid_attrs), words)
-	colors = filter(in_list(valid_colors), words)
-	color = colors[0] if colors else None
-	cmds = filter(in_list(valid_cmds), words)
-	return (color, attrs, cmds)
+    """Parse a style string in the form 'color attr1 attr2...'"""
+    words = style_str.split()
+    attrs = filter(in_list(valid_attrs), words)
+    colors = filter(in_list(valid_colors), words)
+    color = colors[0] if colors else None
+    cmds = filter(in_list(valid_cmds), words)
+    return (color, attrs, cmds)
 
 
 def main():
 
-	args = docopt(usage, version="Colorpen 0.1")
+    args = docopt(usage, version="Colorpen 0.1")
 
-	styleFile = args.get("--style") or defStyleFile
+    styleFile = args.get("--style") or defStyleFile
 
-	styles = loadJSON(styleFile) if isfile(styleFile) else test_style
+    styles = loadJSON(styleFile) if isfile(styleFile) else test_style
 
-	patterns = [ (re.compile(expr), get_style(style_str)) for
-		expr, style_str in styles.iteritems() ]
+    patterns = [ (re.compile(expr), get_style(style_str)) for
+        expr, style_str in styles.iteritems() ]
 
-	while True:
+    while True:
 
-		line = sys.stdin.readline()
+        line = sys.stdin.readline()
 
-		if not line:
-			break
+        if not line:
+            break
 
-		any_match = False
+        any_match = False
 
-		for pat, (color, attrs, cmds) in patterns:
+        for pat, (color, attrs, cmds) in patterns:
 
-			for match in pat.findall(line):
+            for match in pat.findall(line):
 
-				any_match = True
+                any_match = True
 
-				if "delete" in cmds:
-					line = ""
-				else:
-					styled_match = colored(match, color, attrs=attrs)
-					line = line.replace(match, styled_match)
+                if "delete" in cmds:
+                    line = ""
+                else:
+                    styled_match = colored(match, color, attrs=attrs)
+                    line = line.replace(match, styled_match)
 
-		try:
-			if not args["--matches"] or any_match:
-				sys.stdout.write(line)
-				sys.stdout.flush()
+        try:
+            if not args["--matches"] or any_match:
+                sys.stdout.write(line)
+                sys.stdout.flush()
 
-		except IOError:
-			pass
+        except IOError:
+            pass
 
 
 def loadJSON(file):
 
-	if not isfile(file):
-		print "File \"%s\" does not exist" % file
-		sys.exit(1)
+    if not isfile(file):
+        print "File \"%s\" does not exist" % file
+        sys.exit(1)
 
-	try:
-		with open(file) as fid:
-			return json.load(fid)
+    try:
+        with open(file) as fid:
+            return json.load(fid)
 
-	except ValueError as e:
-		print colored("Warning: invalid colorpen JSON file, ignored.", attrs=["bold"])
-		return {}
+    except ValueError as e:
+        print colored("Warning: invalid colorpen JSON file, ignored.", attrs=["bold"])
+        return {}
 
 
 if __name__ == '__main__':
-	try:
-		main()
-	except KeyboardInterrupt:
-		pass
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
