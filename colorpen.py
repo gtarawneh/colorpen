@@ -7,7 +7,6 @@ from docopt import docopt
 from os.path import isfile
 from termcolor import colored
 
-
 usage = """Colorpen
 
 Usage:
@@ -19,20 +18,19 @@ Options:
 
 """
 
-
 defStyleFile = "colorpen.json"
-
 
 test_style = {"hello": "red"}
 
+valid_attrs = [
+    "bold", "dim", "underlined", "blink", "reverse", "hidden", "reset",
+    "res_bold", "res_dim", "res_underlined", "res_blink", "res_reverse",
+    "res_hidden"
+]
 
-valid_attrs = ["bold", "dim", "underlined", "blink", "reverse", "hidden",
-"reset", "res_bold", "res_dim", "res_underlined", "res_blink", "res_reverse",
-"res_hidden"]
-
-
-valid_colors = ["grey", "red", "green", "yellow", "blue", "magenta", "cyan",
-"white"]
+valid_colors = [
+    "grey", "red", "green", "yellow", "blue", "magenta", "cyan", "white"
+]
 
 valid_cmds = ["delete"]
 
@@ -60,8 +58,8 @@ def main():
 
     styles = loadJSON(styleFile) if isfile(styleFile) else test_style
 
-    patterns = [ (re.compile(expr), get_style(style_str)) for
-        expr, style_str in styles.iteritems() ]
+    patterns = [(re.compile(expr), get_style(style_str))
+                for expr, style_str in styles.iteritems()]
 
     while True:
 
@@ -104,7 +102,8 @@ def loadJSON(file):
             return json.load(fid)
 
     except ValueError as e:
-        print colored("Warning: invalid colorpen JSON file, ignored.", attrs=["bold"])
+        print colored(
+            "Warning: invalid colorpen JSON file, ignored.", attrs=["bold"])
         return {}
 
 
